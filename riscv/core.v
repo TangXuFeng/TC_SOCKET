@@ -1,72 +1,111 @@
 // 单周期 RISC-V 核心（简化版）
 // 支持：R/I（算术逻辑）、U（LUI/AUIPC）、J（JAL）、I（JALR）、B（分支）
 
-//输出PC指针,取指,译码,读寄存器,[读内存],执行,写入寄存器,[写入内存]
-
 module core #(
     // 重置后程序指针位置
     parameter RST_PC_ADDRESS=32'h0
 )(
-     input  [31:0] instruction
-    ,output [31:0] pc
-    ,input          clk
+    input          clk
     ,input          rst_n
+    ,input  [31:0]  instruction
+    ,output [31:0]  pc
 );
 
+// 跳转相关
+wire [31:0] jump_pc;
+wire        j;
 
-    wire [31:0] jump_pc;
-    wire j;
+// 寄存器文件接口
+wire [4:0]  rd_address;
+wire [4:0]  rs1_address;
+wire [4:0]  rs2_address;
+wire [31:0] rd_data;
+wire [31:0] rs1_data;
+wire [31:0] rs2_data;
 
-    wire [4:0] rd_address,rs1_address,rs2_address;
-    wire [31:0] rd_value,rs1_value,rs2_value;
+// 解码器输出
+wire [2:0]  funct3;
+wire [6:0]  funct7;
+wire [31:0] immediate;
+wire [6:0]  opcode;
+wire [4:0]  rd;
+wire [3:0]  state;
 
-    // 程序指针
-    pc  #(
-        .RST_PC_ADDRESS(RST_PC_ADDRESS)
-    )pc_inst (
-         .jump_pc(jump_pc)
-        ,.j(j)
-        ,.pc(pc)
-        ,.clk(clk)
-        ,.rst_n(rst_n)
-    );
+// 执行器输出
+wire [31:0] pc_out;
+wire [31:0] alu_result;
+wire [31:0] mem_addr_out;
+wire [31:0] mem_wdata_out;
+wire        mem_read_out;
+wire        mem_write_out;
+wire [31:0] writeback_data;
 
-    //寄存器文件
-    regfile regfile_inst (
-        .rd_address(rd_address)
-        ,.rs1_address(rs1_address)
-        ,.rs2_address(rs2_address)
-        ,.rd_value(rd_value)
-        ,.rs1_value(rs1_value)
-        ,.rs2_value(rs2_value)
-        ,.clk(clk)
-        ,.rst_n(rst_n)
-    );
+// 内存接口（访存阶段）
+wire [31:0] memory_address;
+wire        memory_read;
+wire        memory_write;
+wire [31:0] memory_write_data;
+wire [31:0] memory_read_data;
 
-    //指令解码器
-    instruction_decoder instruction_decoder_inst(
-         .instruction(instruction)
-        ,.state(state)
-        ,.opcode(opcode)
-        ,.rd(rd)
-        ,.funct3(funct3)
-        ,.rs1_address(rs1_address)
-        ,.rs2_address(rs2_address)
-        ,.funct7(funct7)
-        ,.immediate(immediate)
-    );
+// 程序指针
+pc  #(
+    .RST_PC_ADDRESS(RST_PC_ADDRESS)
+) pc_inst (
+    .jump_pc(jump_pc)
+    ,.j(j)
+    ,.pc(pc)
+    ,.clk(clk)
+    ,.rst_n(rst_n)
+);
 
+// 寄存器文件
+regfile regfile_inst (
+    .rd_address(rd_address)
+    ,.rs1_address(rs1_address)
+    ,.rs2_address(rs2_address)
+    ,.rd_data(rd_data)
+    ,.rs1_data(rs1_data)
+    ,.rs2_data(rs2_data)
+    ,.clk(clk)
+    ,.rst_n(rst_n)
+);
 
+// 指令解码器
+instruction_decoder instruction_decoder_inst (
+    .instruction(instruction)
+    ,.opcode(opcode)
+    ,.rd(rd)
+    ,.funct3(funct3)
+    ,.rs1_address(rs1_address)
+    ,.rs2_address(rs2_address)
+    ,.funct7(funct7)
+    ,.immediate(immediate)
+);
 
+// 执行器
+executor executor_inst (
+    .clk(clk)
+    ,.rst_n(rst_n)
+    ,.next_pc(pc)              // 当前PC作为下一条指令基准
+    ,.jump_pc(jump_pc)         // 来自分支/跳转计算
+    ,.rd_data(rd_data)         // 寄存器写回数据
+    ,.rs1_data(rs1_data)       // 源寄存器1数据
+    ,.rs2_data(rs2_data)       // 源寄存器2数据
+    ,.memory_address(memory_address)       // 访存地址
+    ,.memory_read(memory_read)             // 访存读使能
+    ,.memory_write(memory_write)           // 访存写使能
+    ,.memory_write_data(memory_write_data) // 访存写数据
+    ,.memory_read_data(memory_read_data)   // 访存读数据
 
-
-
-
-
-
-
-
-
-
+    // 输出端口
+    ,.pc_out(pc_out)
+    ,.j(j)
+    ,.alu_result(alu_result)
+    ,.mem_addr_out(mem_addr_out)
+    ,.mem_wdata_out(mem_wdata_out)
+    ,.mem_read_out(mem_read_out)
+    ,.mem_write_out(mem_write_out)
+    ,.writeback_data(writeback_data)
+);
 
 endmodule

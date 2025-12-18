@@ -1,11 +1,14 @@
-module riscv (clk,rst_n,done);
+module riscv (
+    input  clk
+    ,input  rst_n
+    ,output done
+);
 
-input clk,rst_n;
-output done;
-wire clk,rst_n,done;
-
-
-
-core core_inst(instruction,pc,clk,rst_n);
+core core_inst (
+    .instruction(instruction)
+    ,.pc(pc)
+    ,.clk(clk)
+    ,.rst_n(rst_n)
+);
 
 endmodule
