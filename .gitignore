@@ -3,3 +3,5 @@
 *.elf
 *.log
 *.tmp
+build/
+shell

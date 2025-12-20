@@ -112,28 +112,29 @@ case(opcode[6:2])
     end
 
     5'b00000: begin // LOAD
-    add_1_a      = rs1_data;
-    add_1_b      = immediate;
-    mem_address = add_1_o;
-    mem_read = 1'b1;
-    case(funct3)
-    3'b000: rd_data = {{24{memory_read_data[7]}}, memory_read_data[7:0]}; // LB
-    3'b001: rd_data = {{16{memory_read_data[15]}}, memory_read_data[15:0]}; // LH
-    3'b010: rd_data = memory_read_data; // LW
-    3'b100: rd_data = {24'b0, memory_read_data[7:0]}; // LBU
-    3'b101: rd_data = {16'b0, memory_read_data[15:0]}; // LHU
-    endcase
+	    add_1_a      = rs1_data;
+	    add_1_b      = immediate;
+	    mem_address = add_1_o;
+	    mem_read = 1'b1;
+	    case(funct3)
+		    3'b000: rd_data = {{24{memory_read_data[7]}}, memory_read_data[7:0]}; // LB
+		    3'b001: rd_data = {{16{memory_read_data[15]}}, memory_read_data[15:0]}; // LH
+		    3'b010: rd_data = memory_read_data; // LW
+		    3'b100: rd_data = {24'b0, memory_read_data[7:0]}; // LBU
+		    3'b101: rd_data = {16'b0, memory_read_data[15:0]}; // LHU
+	    endcase
     end
+
     5'b01000: begin // STORE
-    add_1_a      = rs1_data;
-    add_1_b      = immediate;
-    mem_address  = add_1_o;
-    mem_write    = 1'b1;
-    case(funct3)
-    3'b000: mem_write_data = {24'b0, rs2_data[7:0]}; // SB
-    3'b001: mem_write_data = {16'b0, rs2_data[15:0]}; // SH
-    3'b010: mem_write_data = rs2_data; // SW
-    endcase
+	    add_1_a      = rs1_data;
+	    add_1_b      = immediate;
+	    mem_address  = add_1_o;
+	    mem_write    = 1'b1;
+	    case(funct3)
+		    3'b000: mem_write_data = {24'b0, rs2_data[7:0]}; // SB
+		    3'b001: mem_write_data = {16'b0, rs2_data[15:0]}; // SH
+		    3'b010: mem_write_data = rs2_data; // SW
+	    endcase
     end
 
 
@@ -184,64 +185,64 @@ case(opcode[6:2])
     endcase
     end
 
- 5'b00100: begin // I-type 算术逻辑
+    5'b00100: begin // I-type 算术逻辑
     case(funct3)
-        3'b000: begin // ADDI
-            add_1_a = rs1_data;
-            add_1_b = immediate;
-            rd_data = add_1_o;
-        end
+    3'b000: begin // ADDI
+    add_1_a = rs1_data;
+    add_1_b = immediate;
+    rd_data = add_1_o;
+    end
 
-        3'b010: begin // SLTI
-            slt_a = rs1_data;
-            slt_b = immediate;
-            rd_data = slt_o;
-        end
+    3'b010: begin // SLTI
+    slt_a = rs1_data;
+    slt_b = immediate;
+    rd_data = slt_o;
+    end
 
-        3'b011: begin // SLTIU
-            sltu_a = rs1_data;
-            sltu_b = immediate;
-            rd_data = sltu_o;
-        end
+    3'b011: begin // SLTIU
+    sltu_a = rs1_data;
+    sltu_b = immediate;
+    rd_data = sltu_o;
+    end
 
-        3'b100: begin // XORI
-            xor_a = rs1_data;
-            xor_b = immediate;
-            rd_data = xor_o;
-        end
+    3'b100: begin // XORI
+    xor_a = rs1_data;
+    xor_b = immediate;
+    rd_data = xor_o;
+    end
 
-        3'b110: begin // ORI
-            or_a = rs1_data;
-            or_b = immediate;
-            rd_data = or_o;
-        end
+    3'b110: begin // ORI
+    or_a = rs1_data;
+    or_b = immediate;
+    rd_data = or_o;
+    end
 
-        3'b111: begin // ANDI
-            and_a = rs1_data;
-            and_b = immediate;
-            rd_data = and_o;
-        end
+    3'b111: begin // ANDI
+    and_a = rs1_data;
+    and_b = immediate;
+    rd_data = and_o;
+    end
 
-        3'b001: begin // SLLI
-            sll_a     = rs1_data;
-            sll_shamt = immediate[4:0];
-            rd_data   = sll_o;
-        end
+    3'b001: begin // SLLI
+    sll_a     = rs1_data;
+    sll_shamt = immediate[4:0];
+    rd_data   = sll_o;
+    end
 
-        3'b101: begin // SRLI / SRAI
-            if(funct7 == 7'b0100000) begin
-                sra_a     = rs1_data;
-                sra_shamt = immediate[4:0];
-                rd_data   = sra_o; // SRAI
-            end else begin
-                srl_a     = rs1_data;
-                srl_shamt = immediate[4:0];
-                rd_data   = srl_o; // SRLI
-            end
-        end
+    3'b101: begin // SRLI / SRAI
+    if(funct7 == 7'b0100000) begin
+        sra_a     = rs1_data;
+    sra_shamt = immediate[4:0];
+    rd_data   = sra_o; // SRAI
+    end else begin
+    srl_a     = rs1_data;
+    srl_shamt = immediate[4:0];
+    rd_data   = srl_o; // SRLI
+    end
+    end
     endcase
-end
-endcase
+    end
+    endcase
 
-end
-endmodule
+    end
+    endmodule
