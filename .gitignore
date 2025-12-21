@@ -3,5 +3,6 @@
 *.elf
 *.log
 *.tmp
+*.swp
 build/
 shell
