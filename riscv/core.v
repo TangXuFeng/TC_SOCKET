@@ -5,15 +5,15 @@ module core #(
     // 重置后程序指针位置
     parameter RST_PC_ADDRESS = 32'h0
 )(
-    input          clk,
-    input          rst_n,
-    input  [31:0]  instruction,
-    input  [31:0]  memory_read_data,   // 数据存储器读出的数据
-    output [31:0]  pc,
-    output [31:0]  memory_address,     // 数据存储器地址
-    output [31:0]  memory_write_data,  // 数据存储器写数据
-    output         memory_read,        // 数据存储器读使能
-    output         memory_write        // 数据存储器写使能
+    input          clk
+    ,input          rst_n
+    ,input  [31:0]  instruction
+    ,input  [31:0]  read_data   // 数据存储器读出的数据
+    ,output [31:0]  pc
+    ,output [31:0]  address     // 数据存储器地址
+    ,output [31:0]  write_data  // 数据存储器写数据
+    ,output         read_data_sig        // 数据存储器读使能
+    ,output         write_data_sig        // 数据存储器写使能
 );
 
     // 跳转相关
@@ -83,16 +83,16 @@ module core #(
         .rs2_data(rs2_data),
         .pc(pc),
         .opcode_c_mode(opcode_c_mode),
-        .memory_wait(1'b0),              // 简化版暂时不考虑访存等待
-        .memory_read_data(memory_read_data),
+        .wait_sig(1'b0),              // 简化版暂时不考虑访存等待
+        .read_data(read_data),
 
         // 输出端口
         .pc_next(pc_next),
         .rd_data(rd_data),
-        .mem_address(memory_address),
-        .mem_write_data(memory_write_data),
-        .mem_read(memory_read),
-        .mem_write(memory_write)
+        .address(address),
+        .write_data(write_data),
+        .read_data_sig(read_data_sig),
+        .write_data_sig(write_data_sig)
     );
 
 endmodule

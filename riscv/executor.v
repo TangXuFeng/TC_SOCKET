@@ -12,16 +12,16 @@ module executor
         ,input      [31:0]  rs2_data
         ,input      [31:0]  pc
         ,input              opcode_c_mode
-        ,input              memory_wait
-        ,input      [31:0]  memory_read_data
+        ,input              wait_sig
+        ,input      [31:0]  read_data
 
         // 输出信号
         ,output reg [31:0]  pc_next
         ,output reg [31:0]  rd_data
-        ,output reg [31:0]  mem_address
-        ,output reg [31:0]  mem_write_data
-        ,output reg         mem_read
-        ,output reg         mem_write
+        ,output reg [31:0]  address
+        ,output reg [31:0]  write_data
+        ,output reg         read_data_sig
+        ,output reg         write_data_sig
     );
 
     wire [31:0] pc_inc, add_1_o, add_2_o, pc_mod_o;
@@ -55,10 +55,10 @@ module executor
         // 默认值
         pc_next        = pc_inc;
         rd_data        = 32'b0;
-        mem_address   = 32'b0;
-        mem_write_data  = 32'b0;
-        mem_read   = 1'b0;
-        mem_write  = 1'b0;
+        address   = 32'b0;
+        write_data  = 32'b0;
+        read_data_sig   = 1'b0;
+        write_data_sig  = 1'b0;
 
         add_1_a = 32'b0; add_1_b = 32'b0;
         add_2_a = 32'b0; add_2_b = 32'b0;
@@ -114,26 +114,26 @@ module executor
             5'b00000: begin // LOAD
                 add_1_a      = rs1_data;
                 add_1_b      = immediate;
-                mem_address = add_1_o;
-                mem_read = 1'b1;
+                address = add_1_o;
+                read_data_sig = 1'b1;
                 case(funct3)
-                    3'b000: rd_data = {{24{memory_read_data[7]}}, memory_read_data[7:0]}; // LB
-                    3'b001: rd_data = {{16{memory_read_data[15]}}, memory_read_data[15:0]}; // LH
-                    3'b010: rd_data = memory_read_data; // LW
-                    3'b100: rd_data = {24'b0, memory_read_data[7:0]}; // LBU
-                    3'b101: rd_data = {16'b0, memory_read_data[15:0]}; // LHU
+                    3'b000: rd_data = {{24{read_data[7]}}, read_data[7:0]}; // LB
+                    3'b001: rd_data = {{16{read_data[15]}}, read_data[15:0]}; // LH
+                    3'b010: rd_data = read_data; // LW
+                    3'b100: rd_data = {24'b0, read_data[7:0]}; // LBU
+                    3'b101: rd_data = {16'b0, read_data[15:0]}; // LHU
                 endcase
             end
 
             5'b01000: begin // STORE
                 add_1_a      = rs1_data;
                 add_1_b      = immediate;
-                mem_address  = add_1_o;
-                mem_write    = 1'b1;
+                address  = add_1_o;
+                write_data_sig    = 1'b1;
                 case(funct3)
-                    3'b000: mem_write_data = {24'b0, rs2_data[7:0]}; // SB
-                    3'b001: mem_write_data = {16'b0, rs2_data[15:0]}; // SH
-                    3'b010: mem_write_data = rs2_data; // SW
+                    3'b000: write_data = {24'b0, rs2_data[7:0]}; // SB
+                    3'b001: write_data = {16'b0, rs2_data[15:0]}; // SH
+                    3'b010: write_data = rs2_data; // SW
                 endcase
             end
 

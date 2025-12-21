@@ -15,6 +15,8 @@
 6.暂时不会实现特权模式
 
 
+
+
 整体布局
 riscv(
  core(
@@ -25,7 +27,6 @@ riscv(
    alu()
   )
  )
- cache()
  memory_contorller()
  memory()
  network_mmio()
