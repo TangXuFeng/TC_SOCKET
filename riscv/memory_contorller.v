@@ -1,5 +1,5 @@
 module memory_controller (
-      input         clk
+    input         clk
     , input         rst_n
 
     // 来自 core 的访存请求
@@ -33,9 +33,9 @@ module memory_controller (
     wire [1:0] offset    = mem_address[1:0];
 
     wire [2:0] size_bytes =
-          (mem_size == 3'd0) ? 3'd1 :
-          (mem_size == 3'd1) ? 3'd2 :
-          (mem_size == 3'd3) ? 3'd4 : 3'd4;  // 其他值按 4 字节处理
+        (mem_size == 3'd0) ? 3'd1 :
+        (mem_size == 3'd1) ? 3'd2 :
+        (mem_size == 3'd3) ? 3'd4 : 3'd4;  // 其他值按 4 字节处理
 
     wire       cross_word = (offset + size_bytes) > 3'd4;
 
@@ -77,128 +77,128 @@ module memory_controller (
             op_write     <= 1'b0;
         end else begin
             case (state)
-            // ============================================
-            // S_IDLE：接受新请求
-            // ============================================
-            S_IDLE: begin
-                ch1_read  <= 1'b0;
-                ch1_write <= 1'b0;
-                ch2_read  <= 1'b0;
-                mem_wait  <= 1'b0;
-
-                if (mem_read || mem_write) begin
-                    // 锁存请求信息
-                    op_read       <= mem_read;
-                    op_write      <= mem_write;
-                    latched_addr  <= mem_address;
-                    latched_size  <= mem_size;
-                    latched_wdata <= mem_write_data;
-
-                    // 第一次访问：总是访问 base_addr
-                    ch1_read  <= 1'b1;
+                // ============================================
+                // S_IDLE：接受新请求
+                // ============================================
+                S_IDLE: begin
+                    ch1_read  <= 1'b0;
                     ch1_write <= 1'b0;
-                    ch1_addr  <= base_addr;
+                    ch2_read  <= 1'b0;
+                    mem_wait  <= 1'b0;
 
-                    // 需要等待内存返回
-                    mem_wait <= 1'b1;
-                    state    <= S_PHASE1;
-                end
-            end
+                    if (mem_read || mem_write) begin
+                        // 锁存请求信息
+                        op_read       <= mem_read;
+                        op_write      <= mem_write;
+                        latched_addr  <= mem_address;
+                        latched_size  <= mem_size;
+                        latched_wdata <= mem_write_data;
 
-            // ============================================
-            // S_PHASE1：拿到第一个 32bit
-            // ============================================
-            S_PHASE1: begin
-                ch1_read  <= 1'b0;
-                ch1_write <= 1'b0;
-                ch2_read  <= 1'b0;
+                        // 第一次访问：总是访问 base_addr
+                        ch1_read  <= 1'b1;
+                        ch1_write <= 1'b0;
+                        ch1_addr  <= base_addr;
 
-                buffer <= ch1_rdata;  // 缓存第一个 word
-
-                if (op_read) begin
-                    if (!cross_word) begin
-                        // -------- 对齐读：一次访问就够 --------
-                        mem_read_data <= read_from_64(
-                                            {32'b0, ch1_rdata}, latched_addr[1:0], latched_size
-                                         );
-                        mem_wait  <= 1'b0;
-                        state     <= S_IDLE;
-                    end else begin
-                        // -------- 非对齐读：发起第二次读 --------
-                        ch2_read <= 1'b1;
-                        ch2_addr <= next_addr;
-                        state    <= S_PHASE2;
+                        // 需要等待内存返回
+                        mem_wait <= 1'b1;
+                        state    <= S_PHASE1;
                     end
                 end
 
-                if (op_write) begin
-                    if (!cross_word) begin
-                        // -------- 对齐写：读改写，单 word --------
-                        // 并行写：使用 ch2 写回，可以和 ch1 读同一个地址
-                        ch2_read  <= 1'b0;
+                // ============================================
+                // S_PHASE1：拿到第一个 32bit
+                // ============================================
+                S_PHASE1: begin
+                    ch1_read  <= 1'b0;
+                    ch1_write <= 1'b0;
+                    ch2_read  <= 1'b0;
+
+                    buffer <= ch1_rdata;  // 缓存第一个 word
+
+                    if (op_read) begin
+                        if (!cross_word) begin
+                            // -------- 对齐读：一次访问就够 --------
+                            mem_read_data <= read_from_64(
+                                {32'b0, ch1_rdata}, latched_addr[1:0], latched_size
+                            );
+                            mem_wait  <= 1'b0;
+                            state     <= S_IDLE;
+                        end else begin
+                            // -------- 非对齐读：发起第二次读 --------
+                            ch2_read <= 1'b1;
+                            ch2_addr <= next_addr;
+                            state    <= S_PHASE2;
+                        end
+                    end
+
+                    if (op_write) begin
+                        if (!cross_word) begin
+                            // -------- 对齐写：读改写，单 word --------
+                            // 并行写：使用 ch2 写回，可以和 ch1 读同一个地址
+                            ch2_read  <= 1'b0;
+                            ch1_write <= 1'b1;
+                            ch1_addr  <= base_addr;
+                            ch1_wdata <= write_to_64_low_only(
+                                ch1_rdata, latched_wdata,
+                                latched_addr[1:0], latched_size
+                            );
+                            mem_wait  <= 1'b0;
+                            state     <= S_IDLE;
+                        end else begin
+                            // -------- 非对齐写：需要两个 word --------
+                            // 第二个 word 需要先读出来
+                            ch2_read <= 1'b1;
+                            ch2_addr <= next_addr;
+                            state    <= S_PHASE2;
+                        end
+                    end
+                end
+
+                // ============================================
+                // S_PHASE2：拿到第二个 32bit，做 64bit 混合
+                // ============================================
+                S_PHASE2: begin
+                    ch2_read  <= 1'b0;
+                    ch1_read  <= 1'b0;
+                    ch1_write <= 1'b0;
+
+                    if (op_read) begin
+                        // 读：把两个 32bit 拼成 64bit，在上面移位抹零
+                        mem_read_data <= read_from_64(
+                            {ch2_rdata, buffer},
+                            latched_addr[1:0],
+                            latched_size
+                        );
+                        mem_wait  <= 1'b0;
+                        state     <= S_IDLE;
+                    end
+
+                    if (op_write) begin
+                        // 写：先拼成 64bit old，再叠加待写数据，拆成两个 32bit 写回
+                        // old64 = {high, low} = {ch2_rdata, buffer}
+                        // new64 = 覆盖 size_bytes 从 offset 开始的字段
+
+                        // 第一个 word 写回
                         ch1_write <= 1'b1;
                         ch1_addr  <= base_addr;
-                        ch1_wdata <= write_to_64_low_only(
-                                         ch1_rdata, latched_wdata,
-                                         latched_addr[1:0], latched_size
-                                     );
-                        mem_wait  <= 1'b0;
-                        state     <= S_IDLE;
-                    end else begin
-                        // -------- 非对齐写：需要两个 word --------
-                        // 第二个 word 需要先读出来
-                        ch2_read <= 1'b1;
-                        ch2_addr <= next_addr;
-                        state    <= S_PHASE2;
+                        ch1_wdata <= write_to_64_low(
+                            buffer, ch2_rdata,
+                            latched_wdata,
+                            latched_addr[1:0],
+                            latched_size
+                        );
+
+                        // 第二个 word 写回
+                        // 注意：这里用同一个写端口，如果你有真正双写端口，可以用 ch2_write 分摊
+                        // 为保持与 dual_port_mem 接口兼容，这里只用 ch1 写两拍
+                        // 简化：第二个 word 在下一拍再写更严谨，这里假定内存能接受同拍两次写就不管了
+                        // 下面是“同拍并行写”版本，如果你要严格两拍，可以拆状态再写
+                        // 为了保持时序简单，这里先只写第一个 word，第二个 word 可以在外面再扩展
+
+                        mem_wait <= 1'b0;
+                        state    <= S_IDLE;
                     end
                 end
-            end
-
-            // ============================================
-            // S_PHASE2：拿到第二个 32bit，做 64bit 混合
-            // ============================================
-            S_PHASE2: begin
-                ch2_read  <= 1'b0;
-                ch1_read  <= 1'b0;
-                ch1_write <= 1'b0;
-
-                if (op_read) begin
-                    // 读：把两个 32bit 拼成 64bit，在上面移位抹零
-                    mem_read_data <= read_from_64(
-                                        {ch2_rdata, buffer},
-                                        latched_addr[1:0],
-                                        latched_size
-                                     );
-                    mem_wait  <= 1'b0;
-                    state     <= S_IDLE;
-                end
-
-                if (op_write) begin
-                    // 写：先拼成 64bit old，再叠加待写数据，拆成两个 32bit 写回
-                    // old64 = {high, low} = {ch2_rdata, buffer}
-                    // new64 = 覆盖 size_bytes 从 offset 开始的字段
-
-                    // 第一个 word 写回
-                    ch1_write <= 1'b1;
-                    ch1_addr  <= base_addr;
-                    ch1_wdata <= write_to_64_low(
-                                      buffer, ch2_rdata,
-                                      latched_wdata,
-                                      latched_addr[1:0],
-                                      latched_size
-                                  );
-
-                    // 第二个 word 写回
-                    // 注意：这里用同一个写端口，如果你有真正双写端口，可以用 ch2_write 分摊
-                    // 为保持与 dual_port_mem 接口兼容，这里只用 ch1 写两拍
-                    // 简化：第二个 word 在下一拍再写更严谨，这里假定内存能接受同拍两次写就不管了
-                    // 下面是“同拍并行写”版本，如果你要严格两拍，可以拆状态再写
-                    // 为了保持时序简单，这里先只写第一个 word，第二个 word 可以在外面再扩展
-
-                    mem_wait <= 1'b0;
-                    state    <= S_IDLE;
-                end
-            end
 
             endcase
         end
@@ -215,16 +215,16 @@ module memory_controller (
     );
         reg [5:0] shift_bits;
         reg [31:0] res;
-    begin
-        shift_bits = off * 8;
-        res        = (data64 >> shift_bits);
-        case (size)
-            3'd0: read_from_64 = res & 32'h000000FF;       // 1B
-            3'd1: read_from_64 = res & 32'h0000FFFF;       // 2B
-            3'd3: read_from_64 = res;                      // 4B
-            default: read_from_64 = res;
-        endcase
-    end
+        begin
+            shift_bits = off * 8;
+            res        = (data64 >> shift_bits);
+            case (size)
+                3'd0: read_from_64 = res & 32'h000000FF;       // 1B
+                3'd1: read_from_64 = res & 32'h0000FFFF;       // 2B
+                3'd3: read_from_64 = res;                      // 4B
+                default: read_from_64 = res;
+            endcase
+        end
     endfunction
 
     // ============================================================
@@ -243,24 +243,24 @@ module memory_controller (
         reg [63:0] data64;
         reg [5:0]  shift_bits;
         reg [5:0]  byte_len;
-    begin
-        old64      = {32'b0, old_low};
-        shift_bits = off * 8;
+        begin
+            old64      = {32'b0, old_low};
+            shift_bits = off * 8;
 
-        case (size)
-            3'd0: byte_len = 6'd1;
-            3'd1: byte_len = 6'd2;
-            3'd3: byte_len = 6'd4;
-            default: byte_len = 6'd4;
-        endcase
+            case (size)
+                3'd0: byte_len = 6'd1;
+                3'd1: byte_len = 6'd2;
+                3'd3: byte_len = 6'd4;
+                default: byte_len = 6'd4;
+            endcase
 
-        mask   = ((64'h1 << (byte_len*8)) - 1) << shift_bits;
-        data64 = ( {32'b0, wdata} & ((64'h1 << (byte_len*8)) - 1) ) << shift_bits;
+            mask   = ((64'h1 << (byte_len*8)) - 1) << shift_bits;
+            data64 = ( {32'b0, wdata} & ((64'h1 << (byte_len*8)) - 1) ) << shift_bits;
 
-        new64 = (old64 & ~mask) | data64;
+            new64 = (old64 & ~mask) | data64;
 
-        write_to_64_low_only = new64[31:0];
-    end
+            write_to_64_low_only = new64[31:0];
+        end
     endfunction
 
     // ============================================================
@@ -280,25 +280,25 @@ module memory_controller (
         reg [63:0] data64;
         reg [5:0]  shift_bits;
         reg [5:0]  byte_len;
-    begin
-        old64      = {old_high, old_low};
-        shift_bits = off * 8;
+        begin
+            old64      = {old_high, old_low};
+            shift_bits = off * 8;
 
-        case (size)
-            3'd0: byte_len = 6'd1;
-            3'd1: byte_len = 6'd2;
-            3'd3: byte_len = 6'd4;
-            default: byte_len = 6'd4;
-        endcase
+            case (size)
+                3'd0: byte_len = 6'd1;
+                3'd1: byte_len = 6'd2;
+                3'd3: byte_len = 6'd4;
+                default: byte_len = 6'd4;
+            endcase
 
-        mask   = ((64'h1 << (byte_len*8)) - 1) << shift_bits;
-        data64 = ( {32'b0, wdata} & ((64'h1 << (byte_len*8)) - 1) ) << shift_bits;
+            mask   = ((64'h1 << (byte_len*8)) - 1) << shift_bits;
+            data64 = ( {32'b0, wdata} & ((64'h1 << (byte_len*8)) - 1) ) << shift_bits;
 
-        new64 = (old64 & ~mask) | data64;
+            new64 = (old64 & ~mask) | data64;
 
-        write_to_64_low = new64[31:0];     // 低 word，给 base_addr 写回
-        // 高 word new64[63:32] 如要严格写回，可以再扩展一个函数返回
-    end
+            write_to_64_low = new64[31:0];     // 低 word，给 base_addr 写回
+            // 高 word new64[63:32] 如要严格写回，可以再扩展一个函数返回
+        end
     endfunction
 
 endmodule
