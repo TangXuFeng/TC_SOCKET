@@ -1,6 +1,6 @@
 module dual_port_mem #(
  // 内存大小：你可以改成你需要的深度
-	localparam MEM_DEPTH = 1024;  // 1024 words = 4KB
+	 parameter MEM_DEPTH = 1024  // 1024 words = 4KB
 )(
 	input              clk,
 	input              rst_n,
