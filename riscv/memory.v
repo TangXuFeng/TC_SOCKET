@@ -1,62 +1,57 @@
-module dual_port_mem #(
- // 内存大小：你可以改成你需要的深度
-	 parameter MEM_DEPTH = 1024  // 1024 words = 4KB
+module memory #(
+ parameter SIZE = 20  // 2^20 bytes = 1MB
 )(
-	input              clk,
-	input              rst_n,
+ input              clk
+ , input              rst_n
 
-	// -------- Port 1: read + write --------
-	input              write_1,
-	input              read_1,
-	input      [31:0]  address_1,
-	input      [31:0]  write_data_1,
-	output reg [31:0]  read_data_1,
-
-	// -------- Port 2: read only --------
-	input              read_2,
-	input      [31:0]  address_2,
-	output reg [31:0]  read_data_2
+ , input              enable   // 选中线
+ , input              rw       // 0=读, 1=写
+ , input      [31:0]  address
+ , input      [31:0]  write_data
+ , output reg wait_sig //等待线,当读写正忙时产生
+ , output reg [31:0]  read_data
 );
 
+ // ---------------------------------------------------------
+ // 内存阵列：32bit 宽度
+ // 总字节数 = 2^SIZE
+ // 总 word 数 = 2^(SIZE-2)
+ // ---------------------------------------------------------
+ localparam WORDS = (1 << (SIZE - 2));
 
-	// 32-bit 宽度的 RAM
-	reg [31:0] mem [0:MEM_DEPTH-1];
+ reg [31:0] mem [0:WORDS-1];
+ reg [4:0] wait_reg;
 
-	// 将字节地址转换为 word 地址
-	wire [31:2] addr1_word = address_1[31:2];
-	wire [31:2] addr2_word = address_2[31:2];
+ // ---------------------------------------------------------
+ // 地址按字节寻址，需要除以 4 得到 word index
+ // ---------------------------------------------------------
+ wire [31:0] word_index = address[31:2];
 
-	// -----------------------------
-	// Port 1: 同步写、异步读
-	// -----------------------------
-	always @(posedge clk) begin
-		if (!rst_n) begin
-			read_data_1 <= 32'b0;
-		end else begin
-			// 写操作（同步）
-			if (write_1) begin
-				mem[addr1_word] <= write_data_1;
-			end
-
-			// 读操作（异步读寄存输出）
-			if (read_1) begin
-				read_data_1 <= mem[addr1_word];
-			end
-		end
-	end
-
-	// -----------------------------
-	// Port 2: 只读端口
-	// -----------------------------
-	always @(posedge clk) begin
-		if (!rst_n) begin
-			read_data_2 <= 32'b0;
-		end else begin
-			if (read_2) begin
-				read_data_2 <= mem[addr2_word];
-			end
-		end
-	end
+ // ---------------------------------------------------------
+ // 同步读写
+ // ---------------------------------------------------------
+ always @(posedge clk) begin
+  if (!rst_n) begin
+   read_data <= 32'b0;
+   wait_reg<=5'b0;
+  end else if (enable) begin
+   //模拟设备正忙,当经过16周期后返回数据
+   //延迟内存
+   wait_sig=1'b1;
+   if(wait_reg == 5'b0)begin
+    wait_reg<=wait_reg+5'b1;
+   end else if(wait_reg == 5'b10000) begin
+    wait_reg <= 5'b0;
+    wait_sig= 1'b0;
+   end
+   if (rw == 1'b1) begin
+    // 写
+    mem[word_index] <= write_data;
+   end else begin
+    // 读
+    read_data <= mem[word_index];
+   end
+  end
+ end
 
 endmodule
-
