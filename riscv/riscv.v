@@ -1,7 +1,8 @@
 module riscv (
     input  clk
     ,input  rst_n
-    ,output done
+    ,input  in
+    ,output out
 );
 
     // Core <-> dual_load_memory (I-port)
@@ -23,8 +24,7 @@ module riscv (
     wire [31:0] mem_rdata;
     wire        mem_selected;
 
-    wire        exception; //异常信号
-    wire [31:0] exception_code;
+    wire [31:0] external_interrupts; //外部中断信号
 
     core #(
         .RST_PC_ADDRESS(32'h0000_0000)
@@ -33,13 +33,12 @@ module riscv (
         ,.rst_n          (rst_n)
         ,.pc             (pc)
         ,.instruction    (instruction)   // 来自 dual_load_memory
+        ,.external_interrupts   (external_interrupts)
 
         ,.address        (d_addr)
         ,.read_data      (d_rdata)       // 来自 memory 或 dual_load_memory
         ,.write_data     (d_wdata)
         ,.write_data_sig (d_wen)
-        ,.exception      (exception)
-        ,.exception_code    (exception_code)
     );
 
     dual_load_memory #(

@@ -2,18 +2,21 @@
 module instruction_decoder(
     input  [31:0] instruction
     ,output reg [6:0]  opcode
-    ,output reg [4:0]  rd
+    ,output reg [4:0]  rd_address
     ,output reg [2:0]  funct3
     ,output reg [4:0]  rs1_address
     ,output reg [4:0]  rs2_address
     ,output reg [6:0]  funct7
     ,output reg [31:0] immediate
+    ,output     [31:0] opcode_decode
 );
+    //把opcode解码成32个只有1bit激活的线
+    assign opcode_decode = 32'b1 << opcode[6:2];
 
     always @(*) begin
         // 默认值
         opcode       = instruction[6:0];
-        rd           = 5'b0;
+        rd_address           = 5'b0;
         funct3       = 3'b0;
         rs1_address  = 5'b0;
         rs2_address  = 5'b0;
@@ -29,20 +32,20 @@ module instruction_decoder(
             case (instruction[6:2])
                 // U 型指令：LUI / AUIPC
                 5'b01101, 5'b00101: begin
-                    rd        = instruction[11:7];
+                    rd_address        = instruction[11:7];
                     immediate = {instruction[31:12], 12'b0};
                 end
 
                 // J 型指令：JAL
-                5'b11011: begin
-                    rd        = instruction[11:7];
+                5'b11011,5'b11001: begin
+                    rd_address        = instruction[11:7];
                     immediate = {{12{instruction[31]}}, instruction[19:12], instruction[20],
                         instruction[30:25], instruction[24:21], 1'b0};
                 end
 
                 // I 型指令：JALR / LOAD / ALU Imm
-                5'b11001, 5'b00000, 5'b00100: begin
-                    rd           = instruction[11:7];
+                5'b00000, 5'b00100,5'b11100,5'b00011: begin
+                    rd_address           = instruction[11:7];
                     rs1_address  = instruction[19:15];
                     funct3       = instruction[14:12];
                     immediate    = {{20{instruction[31]}}, instruction[31:20]};
@@ -67,7 +70,7 @@ module instruction_decoder(
 
                 // R 型指令：ALU Reg
                 5'b01100: begin
-                    rd           = instruction[11:7];
+                    rd_address           = instruction[11:7];
                     rs1_address  = instruction[19:15];
                     rs2_address  = instruction[24:20];
                     funct3       = instruction[14:12];

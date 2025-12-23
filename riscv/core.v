@@ -9,13 +9,12 @@ module core #(
     ,input          rst_n
     ,output [31:0]  pc          //程序指针,传递给双加载内存
     ,input  [31:0]  instruction //指令
+    ,input  [31:0]  external_interrupts //外部中断相关
+    ,input  [31:0]  read_data   // 数据存储器读出的数据
 
     ,output [31:0]  address     // 数据存储器地址
-    ,input  [31:0]  read_data   // 数据存储器读出的数据
     ,output [31:0]  write_data  // 数据存储器写数据
     ,output         write_data_sig       // 1=写,通过地址判断是否读写
-    ,output         exception
-    ,output         exception_code
 );
 
     // 跳转相关
@@ -29,10 +28,11 @@ module core #(
 
     // 解码器输出
     wire [6:0]  opcode;
-    wire [4:0]  rd;
+    wire [4:0]  rd_address;
     wire [2:0]  funct3;
     wire [6:0]  funct7;
     wire [31:0] immediate;
+    wire [31:0] opcode_decode;
 
     // 执行器输出
     wire [31:0] rd_data;
@@ -51,7 +51,7 @@ module core #(
     regfile regfile_inst (
         .clk(clk)
         ,.rst_n(rst_n)
-        ,.rd_address(rd)
+        ,.rd_address(rd_address)
         ,.rs1_address(rs1_address)
         ,.rs2_address(rs2_address)
         ,.rd_data(rd_data)       // 写回数据
@@ -63,12 +63,13 @@ module core #(
     instruction_decoder instruction_decoder_inst (
         .instruction(instruction)
         ,.opcode(opcode)
-        ,.rd(rd)
+        ,.rd_address(rd_address)
         ,.funct3(funct3)
         ,.rs1_address(rs1_address)
         ,.rs2_address(rs2_address)
         ,.funct7(funct7)
         ,.immediate(immediate)
+        ,.opcode_decode(opcode_decode)
     );
 
     // 执行器
@@ -80,6 +81,7 @@ module core #(
         ,.funct3(funct3)
         ,.funct7(funct7)
         ,.immediate(immediate)
+        ,.opcode_decode(opcode_decode)
         ,.rs1_data(rs1_data)
         ,.rs2_data(rs2_data)
         ,.pc(pc)
@@ -92,8 +94,7 @@ module core #(
         ,.read_data(read_data)
         ,.write_data(write_data)
         ,.write_data_sig(write_data_sig)
-        ,.exception(exception)
-        ,.exception_code(exception_code)
+        ,.internal_interrupts(internal_interrupts)
     );
 
 endmodule
