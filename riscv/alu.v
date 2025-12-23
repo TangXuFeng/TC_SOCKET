@@ -7,29 +7,29 @@ module alu (
 );
     
     
-    parameter alu_eq=5'b10000;
-    parameter alu_xor=5'b10000;
-    parameter alu_or=5'b10000;
-    parameter alu_and=5'b10000;
-    parameter alu_sll=5'b10000;
-    parameter alu_srl=5'b10000;
-    parameter alu_sra=5'b10000;
+    parameter alu_xor=5'b00001;
+    parameter alu_or=5'b00010;
+    parameter alu_and=5'b00011;
+    parameter alu_sll=5'b00100;
+    parameter alu_srl=5'b00101;
+    parameter alu_sra=5'b00110;
 
     parameter alu_add=5'b01000;
     parameter alu_sub=5'b01001;
     parameter alu_slt=5'b01010;
     parameter alu_sltu=5'b01011;
+    parameter alu_eq=5'b01100;
 
 
     parameter alu_mul=5'b10000;
-    parameter alu_mulh=5'b10000;
-    parameter alu_mulhsu=5'b10000;
-    parameter alu_mulhu=5'b10000;
+    parameter alu_mulh=5'b10001;
+    parameter alu_mulhsu=5'b10010;
+    parameter alu_mulhu=5'b10011;
     
-    parameter alu_div=5'b10000;
-    parameter alu_divu=5'b10000;
-    parameter alu_rem=5'b10000;
-    parameter alu_remu=5'b10000;
+    parameter alu_div=5'b10100;
+    parameter alu_divu=5'b10101;
+    parameter alu_rem=5'b10110;
+    parameter alu_remu=5'b10111;
     
     reg [63:0] tmp;
     always @(*)begin
@@ -37,7 +37,6 @@ module alu (
         tmp = 64'b0;
         if(alu_op[4:3] == 2'b00)begin
             case(alu_op[2:0])
-                3'b000:alu_result = alu_a == alu_b ? 32'b1:32'b0;
                 3'b001:alu_result = alu_a ^ alu_b;
                 3'b010:alu_result = alu_a | alu_b;
                 3'b011:alu_result = alu_a & alu_b;
@@ -52,6 +51,7 @@ module alu (
                 3'b000,3'b001:alu_result = alu_a + alu_op[0]?-alu_b:alu_b;
                 3'b010:alu_result = $signed(alu_a) < $signed(alu_b)?32'b1:32'b0;
                 3'b011:alu_result = alu_a < alu_b ? 32'b1:32'b0;
+                3'b100:alu_result = alu_a == alu_b ? 32'b1:32'b0;
             endcase
         end
 
