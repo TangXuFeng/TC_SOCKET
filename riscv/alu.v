@@ -38,9 +38,9 @@ module alu (
         if(alu_op[4:3] == 2'b00)begin
             case(alu_op[2:0])
                 3'b000:alu_result = alu_a == alu_b ? 32'b1:32'b0;
-                3'b001:alu_result = alu_a ^ alu_b ? 32'b1:32'b0;
-                3'b010:alu_result = alu_a | alu_b ? 32'b1:32'b0;
-                3'b011:alu_result = alu_a & alu_b ? 32'b1:32'b0;
+                3'b001:alu_result = alu_a ^ alu_b;
+                3'b010:alu_result = alu_a | alu_b;
+                3'b011:alu_result = alu_a & alu_b;
                 3'b100:alu_result = alu_a << alu_b[4:0];
                 3'b101:alu_result = alu_a >> alu_b[4:0];
                 3'b110:alu_result =  $signed(alu_a) >>> alu_b[4:0];
