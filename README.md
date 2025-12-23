@@ -52,6 +52,8 @@ riscv(
 实现指令集
 标记-的是还没实现,但是准备实现的
 标记/-是不准备实现的
+标记?的是已经实现,但是被禁用的,都是RV32M
+嗯,如果你的综合器真的能做出来这东西的话,可以在ALU中启用
 
 lui
 auipc
@@ -100,14 +102,14 @@ ebreak
 /-csrrwi
 /-csrrsi
 /-csrrci
-mul
-mulh
-mulhsu
-mulhu
-div
-divu
-rem
-remu
+?mul
+?mulh
+?mulhsu
+?mulhu
+?div
+?divu
+?rem
+?remu
 </pre>
 
 </details>
