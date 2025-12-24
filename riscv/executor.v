@@ -14,11 +14,8 @@ module executor    (
     ,input      [31:0]  read_data
     ,input      [31:0]  pc
 
-    ,input              wait_sig
-
     ,output reg [31:0]  pc_next
     ,output reg [31:0]  rd_data
-    ,output reg [31:0]  alu_result
     ,output reg [31:0]  address
     ,output reg [31:0]  write_data
     ,output reg         write_data_sig
@@ -34,29 +31,29 @@ module executor    (
 
 
 
-    wire [31:0] alu_result;
     reg [31:0] alu_a,alu_b;
     reg [4:0]  alu_op;
+    wire [31:0]  alu_result;
 
-     parameter alu_xor=5'b00001;
-    parameter alu_or=5'b00010;
-    parameter alu_and=5'b00011;
-    parameter alu_sll=5'b00100;
-    parameter alu_srl=5'b00101;
-    parameter alu_sra=5'b00110;
 
-    parameter alu_add=5'b01000;
-    parameter alu_sub=5'b01001;
-    parameter alu_slt=5'b01010;
-    parameter alu_sltu=5'b01011;
-    parameter alu_eq=5'b01100;
+    parameter alu_add=  5'b00000;
+    parameter alu_sll=  5'b00001;
+    parameter alu_slt=  5'b00010;
+    parameter alu_sltu= 5'b00011;
+    parameter alu_xor=  5'b00100;
+    parameter alu_srl=  5'b00101;
+    parameter alu_or=   5'b00110;
+    parameter alu_and=  5'b00111;
+    
+    parameter alu_sub=5'b01000;
+    parameter alu_sra=  5'b01101;
 
+    parameter alu_eq=5'b11000;
 
     parameter alu_mul=5'b10000;
     parameter alu_mulh=5'b10001;
     parameter alu_mulhsu=5'b10010;
     parameter alu_mulhu=5'b10011;
-    
     parameter alu_div=5'b10100;
     parameter alu_divu=5'b10101;
     parameter alu_rem=5'b10110;
@@ -75,8 +72,8 @@ module executor    (
         alu_a = rs1_data;//基本都是rs1
         alu_b = rs2_data;//少数情况下是immediate或者其它
         rd_data = alu_result;//大部分都是alu的结果
-        alu_op = alu_nop;//默认提供32'b0
-
+        alu_op = {funct7[0],funct7[5],funct3};//默认提供32'b0
+        address = 32'b0;
 
         if(opcode_decode[0])begin
             // LOAD
@@ -105,26 +102,6 @@ module executor    (
 
         if(opcode_decode[4]) begin // I-type 算术逻辑
             alu_b = immediate;
-            if(f3[0]) alu_op = alu_add;
-            if(f3[2]) alu_op = alu_slt;
-            if(f3[3]) alu_op = alu_sltu;
-            if(f3[4]) alu_op = alu_xor;
-            if(f3[6]) alu_op = alu_or;
-            if(f3[7]) alu_op = alu_and;
-
-            if(f3[1]) begin 
-                alu_b  = immediate[4:0];
-                alu_op = alu_sll;
-            end
-
-            if(funct7 == 7'b0100000) begin
-                alu_b  = immediate[4:0];
-                alu_op = alu_srl;
-            end
-            if(f3[5]&&funct7 == 7'b00000000)begin
-                alu_b  = immediate[4:0];
-                alu_op = alu_sra;
-            end
         end
 
 
@@ -145,42 +122,7 @@ module executor    (
 
 
         if(opcode_decode[12]) begin // R-type 算术逻辑
-            if(funct7 == 7'b0000000)begin
-                if(f3[0])alu_op=alu_add;
-                if(f3[1])begin
-                    alu_b= rs2_data[4:0];
-                    alu_op=alu_sll;
-                end
-
-                if(f3[2])alu_op=alu_slt;
-                if(f3[3])alu_op=alu_sltu;
-                if(f3[4])alu_op=alu_xor;
-                if(f3[5])begin
-                    alu_b=rs2_data[4:0];
-                    alu_op=alu_srl;
-                end
-                if(f3[6])alu_op = alu_or;
-                if(f3[7])alu_op=alu_and;
-            end
-
-            if(funct7 == 7'b00000001)begin
-                if(f3[0]) alu_op=alu_mul;
-                if(f3[1]) alu_op=alu_mulh;
-                if(f3[2]) alu_op=alu_mulhsu;
-                if(f3[3]) alu_op=alu_mulhu;
-                if(f3[4]) alu_op=alu_div;
-                if(f3[5]) alu_op=alu_divu;
-                if(f3[6]) alu_op=alu_rem;
-                if(f3[7]) alu_op=alu_remu;
-            end
-
-            if(funct7 == 7'b0100000)begin
-                if(f3[0]) alu_op=alu_sub;
-                if(f3[5])begin
-                    alu_b=rs2_data[4:0];
-                    alu_op=alu_sra;
-                end
-            end
+            // 没什么需要做的
         end
 
 
@@ -191,14 +133,14 @@ module executor    (
 
         if(opcode_decode[24]) begin // Branch
             alu_op = funct3[2]?(funct3[1]?alu_slt:alu_sltu):alu_eq;
-            if(funct3[0]^alu_result[0]) pc_next = pc+immediate;
+            if(funct3[0]^alu_result[0]) pc_next = pc+immediate[31:1];
         end
 
 
         if(opcode_decode[25]&&f3[0]) begin // JALR
-                rd_data = pc_inc;
-                alu_b = immediate;
-                pc_next = {alu_result[31:1],1'b0};//可能出现地址不对齐,指令要求
+            rd_data = pc_inc;
+            alu_b = immediate;
+            pc_next = {alu_result[31:1],1'b0};//可能出现地址不对齐,指令要求
         end
 
 
@@ -206,21 +148,20 @@ module executor    (
             rd_data = pc_inc;
             alu_a = pc;
             alu_b = immediate;
-            pc_next = alu_result;
+            pc_next = {alu_result[31:1],1'b0};
         end
 
 
         if(opcode_decode[28])begin //ecall ebreak
             if(instruction[11:7]==5'b0 && instruction[19:16] == 4'b0 
                 && funct3 ==3'b0 && immediate[11:0] == 12'b0 )begin
-                if(immediate[0] ==0)begin
-                    internal_interrupts = 32'h8000000d; // ecall
+                    if(immediate[0] ==0)begin
+                        internal_interrupts = 32'h8000000b; // ecall
+                    end else begin
+                        internal_interrupts = 32'h80000003; // ebreak
+                    end
                 end else begin
-                    internal_interrupts = 32'h80000003; // ebreak
                 end
-            end else begin
-            end
         end
-
     end
 endmodule

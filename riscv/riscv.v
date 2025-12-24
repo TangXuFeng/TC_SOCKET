@@ -2,7 +2,7 @@ module riscv (
     input  clk
     ,input  rst_n
     ,input  in
-    ,output out
+    ,output pc
 );
 
     // Core <-> dual_load_memory (I-port)
@@ -27,7 +27,7 @@ module riscv (
     wire [31:0] external_interrupts; //外部中断信号
 
     core #(
-        .RST_PC_ADDRESS(32'h0000_0000)
+        .RST_PC_ADDRESS(32'h8000_0000)
     ) u_core (
         .clk            (clk)
         ,.rst_n          (rst_n)

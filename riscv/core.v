@@ -6,12 +6,12 @@ module core #(
     parameter RST_PC_ADDRESS = 32'h0
 )(
     input          clk
-    ,input          rst_n
-    ,output [31:0]  pc          //程序指针,传递给双加载内存
+    ,input          rst_n    
     ,input  [31:0]  instruction //指令
     ,input  [31:0]  external_interrupts //外部中断相关
     ,input  [31:0]  read_data   // 数据存储器读出的数据
 
+    ,output [31:0]  pc          //程序指针,传递给双加载内存
     ,output [31:0]  address     // 数据存储器地址
     ,output [31:0]  write_data  // 数据存储器写数据
     ,output         write_data_sig       // 1=写,通过地址判断是否读写
@@ -76,22 +76,20 @@ module core #(
     executor executor_inst (
         .clk(clk)
         ,.rst_n(rst_n)
+        ,.opcode_decode(opcode_decode)
         ,.instruction(instruction)
         ,.opcode(opcode)
         ,.funct3(funct3)
         ,.funct7(funct7)
         ,.immediate(immediate)
-        ,.opcode_decode(opcode_decode)
         ,.rs1_data(rs1_data)
         ,.rs2_data(rs2_data)
+        ,.read_data(read_data)
         ,.pc(pc)
-        ,.wait_sig(1'b0)              
-
+        
         ,.pc_next(pc_next)
         ,.rd_data(rd_data)
-        
         ,.address(address)
-        ,.read_data(read_data)
         ,.write_data(write_data)
         ,.write_data_sig(write_data_sig)
         ,.internal_interrupts(internal_interrupts)

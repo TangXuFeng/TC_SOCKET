@@ -92,8 +92,8 @@ srl
 sra
 or
 and
-fence
-fence,i
+/-fence
+/-fence,i
 ecall
 ebreak
 /-csrrw
