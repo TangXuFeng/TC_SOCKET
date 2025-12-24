@@ -110,7 +110,10 @@ static unsigned encode_r(int rd, int rs1, int rs2, int funct3, int funct7, int o
 }
 
 static unsigned encode_i(int rd, int rs1, int imm, int funct3, int opcode) {
-    if (imm < -2048 || imm > 2047) { fprintf(stderr, "I-type immediate out of range: %d\n", imm); exit(1); }
+    if (imm < -2048 || imm > 2047) { 
+        fprintf(stderr, "I-type immediate out of range: %d\n", imm); 
+        exit(1); 
+    }
     unsigned uimm = (unsigned)(imm & 0xfff);
     return (uimm << 20) |
         ((unsigned)rs1 << 15) |
@@ -120,7 +123,10 @@ static unsigned encode_i(int rd, int rs1, int imm, int funct3, int opcode) {
 }
 
 static unsigned encode_s(int rs1, int rs2, int imm, int funct3, int opcode) {
-    if (imm < -2048 || imm > 2047) { fprintf(stderr, "S-type immediate out of range: %d\n", imm); exit(1); }
+    if (imm < -2048 || imm > 2047) { 
+        fprintf(stderr, "S-type immediate out of range: %d\n", imm); 
+        exit(1); 
+    }
     unsigned uimm = (unsigned)(imm & 0xfff);
     unsigned imm_hi = (uimm >> 5) & 0x7f;
     unsigned imm_lo = uimm & 0x1f;
@@ -137,12 +143,15 @@ static unsigned encode_b(int rs1, int rs2, int offset, int funct3, int opcode) {
         fprintf(stderr, "Branch offset not aligned: %d\n", offset);
         exit(1);
     }
-    if (offset < -4096 || offset > 4094) { fprintf(stderr, "Branch offset out of range: %d\n", offset); exit(1); }
-    int imm = offset >> 1;
-    unsigned bit12   = (imm >> 11) & 1;
+    if (offset < -4096 || offset > 4094) {
+        fprintf(stderr, "Branch offset out of range: %d\n", offset); 
+        exit(1); 
+    }
+    int imm = offset ;
+    unsigned bit12   = (imm >> 12) & 1;
     unsigned bit10_5 = (imm >> 5) & 0x3f;
     unsigned bit4_1  = (imm >> 1) & 0xf;
-    unsigned bit11   = imm & 1;
+    unsigned bit11   = (imm >> 11) & 1;
 
     return (bit12 << 31) |
         (bit10_5 << 25) |
@@ -155,7 +164,10 @@ static unsigned encode_b(int rs1, int rs2, int offset, int funct3, int opcode) {
 }
 
 static unsigned encode_u(int rd, int imm, int opcode) {
-    if (imm & 0xfff) { fprintf(stderr, "U-type immediate must be 20-bit aligned: 0x%x\n", imm); exit(1); }
+    if (imm & 0xfff) { 
+        fprintf(stderr, "U-type immediate must be 20-bit aligned: 0x%x\n", imm);
+        exit(1);
+    }
     unsigned uimm = (unsigned)(imm & 0xfffff000);
     return uimm | ((unsigned)rd << 7) | opcode;
 }
@@ -165,13 +177,16 @@ static unsigned encode_j(int rd, int offset, int opcode) {
         fprintf(stderr, "JAL offset not aligned: %d\n", offset);
         exit(1);
     }
-    if (offset < -(1<<20) || offset > ((1<<20)-2)) { fprintf(stderr, "JAL offset out of range: %d\n", offset); exit(1); }
+    if (offset < -(1<<20) || offset > ((1<<20)-2)) { 
+        fprintf(stderr, "JAL offset out of range: %d\n", offset); 
+        exit(1);
+    }
     int imm = offset >> 1;
 
-    unsigned bit20    = (imm >> 20-1) & 0b1;
-    unsigned bit10_1  = (imm >> 1 -1) & 0b11111111111;
-    unsigned bit11    = (imm >> 11-1) & 0b1;
-    unsigned bit19_12 = (imm >> 12 -1)& 0b11111111;
+    unsigned bit20    = (imm >> 20-1) & 1;
+    unsigned bit10_1  = (imm >> 1 -1) & 0x3F;
+    unsigned bit11    = (imm >> 11-1) & 1;
+    unsigned bit19_12 = (imm >> 12 -1)& 0xFF;
 
     return (bit20 << 31) |
         (bit19_12 << 12) |
