@@ -13,4 +13,4 @@
 
 0xffdff06f  # jal x0, fail (向后跳 -4 字节)
 
-0x0000006f  # success: jal x0, 0  (死循环)
+0x0000006f  # success: jal x0, 0 (死循环)
