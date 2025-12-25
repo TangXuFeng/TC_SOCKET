@@ -5,7 +5,7 @@
 <details>
 <summary>整体结构</summary>
 
-<pre>
+
 
 1.实现部分riscv指令
 2.实现中断功能
@@ -39,7 +39,6 @@ riscv(
 )
 
 
-</pre>
 
 </details>
 
@@ -128,6 +127,6 @@ xori     x[rd] = x[rs1] ˆ sext(immediate)
 
 ** 程序是独立的地址总线,和内存不互通.无大小限制
 
-<pre>
+
 </details>
 
