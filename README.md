@@ -47,7 +47,7 @@ riscv(
 <details>
 <summary>指令集</summary>
 
-<pre>
+
 
 实现指令集
 标记-的是还没实现,但是准备实现的
@@ -113,7 +113,6 @@ xori     x[rd] = x[rs1] ˆ sext(immediate)
 
 ```
 
-</pre>
 
 </details>
 <details>
