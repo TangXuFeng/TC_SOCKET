@@ -49,13 +49,8 @@ riscv(
 
 
 实现指令集
-标记-的是还没实现,但是准备实现的
-标记/-是不准备实现的
-标记?的是已经实现,但是被禁用的,都是RV32M
-嗯,如果你的综合器真的能做出来这东西的话,可以在ALU中启用
 
 ```
-
 add      x[rd] = x[rs1] + x[rs2]
 addi     x[rd] = x[rs1] + sext(immediate)
 and      x[rd] = x[rs1] & x[rs2]
@@ -73,20 +68,11 @@ ebreak   RaiseException(Breakpoint)
 ecall    RaiseException(EnvironmentCall)
 jal      x[rd] = pc+4; pc += sext(offset)
 jalr     t=pc+4; pc=(x[rs1]+sext(offset))&∼1; x[rd]=t
-lb       x[rd] = sext(M[x[rs1] + sext(offset)][7:0])
-lbu      x[rd] = M[x[rs1] + sext(offset)][7:0]
-lh       x[rd] = sext(M[x[rs1] + sext(offset)][15:0])
-lhu      x[rd] = M[x[rs1] + sext(offset)][15:0]
 lui      x[rd] = sext(immediate[31:12] << 12)
-lw       x[rd] = sext(M[x[rs1] + sext(offset)][31:0])
 mul      x[rd] = x[rs1] × x[rs2]
-mulh     x[rd] = (x[rs1] s ×s x[rs2]) >>s XLEN
-mulhsu   x[rd] = (x[rs1] s ×u x[rs2]) >>s XLEN
 mulhu    x[rd] = (x[rs1] u ×u x[rs2]) >> u XLEN
 or       x[rd] = x[rs1] | x[rs2]
 ori      x[rd] = x[rs1] | sext(immediate)
-sb       M[x[rs1] + sext(offset)] = x[rs2][7:0]
-sh       M[x[rs1] + sext(offset)] = x[rs2][15:0]
 sll      x[rd] = x[rs1] << x[rs2]
 slli     x[rd] = x[rs1] << shamt
 slt      x[rd] = x[rs1] <s x[rs2]
@@ -98,17 +84,33 @@ srai     x[rd] = x[rs1] >>s shamt
 srl      x[rd] = x[rs1] >>u x[rs2]
 srli     x[rd] = x[rs1] >>u shamt
 sub      x[rd] = x[rs1] - x[rs2]
-sw       M[x[rs1] + sext(offset)] = x[rs2][31:0]
 xor      x[rd] = x[rs1] ˆ x[rs2]
 xori     x[rd] = x[rs1] ˆ sext(immediate)
-/-fence
-/-fence,i
-/-csrrw
-/-csrrs
-/-csrrc
-/-csrrwi
-/-csrrsi
-/-csrrci
+```
+因为内存和程序分离,不太支持的部分
+```
+lb       x[rd] = sext(M[x[rs1] + sext(offset)][7:0])
+lbu      x[rd] = M[x[rs1] + sext(offset)][7:0]
+lh       x[rd] = sext(M[x[rs1] + sext(offset)][15:0])
+lhu      x[rd] = M[x[rs1] + sext(offset)][15:0]
+lw       x[rd] = sext(M[x[rs1] + sext(offset)][31:0])
+sb       M[x[rs1] + sext(offset)] = x[rs2][7:0]
+sh       M[x[rs1] + sext(offset)] = x[rs2][15:0]
+sw       M[x[rs1] + sext(offset)] = x[rs2][31:0]
+```
+
+不支持的部分
+```
+fence
+fence,i
+csrrw
+csrrs
+csrrc
+csrrwi
+csrrsi
+csrrci
+mulh     x[rd] = (x[rs1] s ×s x[rs2]) >>s XLEN
+mulhsu   x[rd] = (x[rs1] s ×u x[rs2]) >>s XLEN
 
 ```
 

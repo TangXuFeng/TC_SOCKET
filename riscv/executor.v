@@ -79,6 +79,7 @@ module executor    (
 
 
         if(opcode_decode[4]) begin // I-type 算术逻辑
+            if(funct3 == 3'b001|| funct3 == 3'b101)alu_op = {1'b0,1'b0,immediate[10],funct3};
             alu_b = immediate;
         end
 
