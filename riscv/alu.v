@@ -3,25 +3,24 @@ module alu #(
 )(
     input  [31:0] alu_a
     ,input  [31:0] alu_b
-    ,input  [4:0]  alu_op
+    ,input  [5:0]  alu_op
 
     ,output reg [31:0] alu_result
 );
+    //alu_op:
+    //条件判断1'b1,funct7[0]  ,funct7[5],funct3[2:0]
 
 
     parameter alu_add=  5'b00000;
     parameter alu_sll=  5'b00001;
-    parameter alu_slt=  5'b00010;
-    parameter alu_sltu= 5'b00011;
     parameter alu_xor=  5'b00100;
     parameter alu_srl=  5'b00101;
     parameter alu_or=   5'b00110;
     parameter alu_and=  5'b00111;
-    
+
     parameter alu_sub=5'b01000;
     parameter alu_sra=  5'b01101;
 
-    parameter alu_eq=5'b11000;
 
     parameter alu_mul=5'b10000;
     parameter alu_mulh=5'b10001;
@@ -33,28 +32,41 @@ module alu #(
     parameter alu_remu=5'b10111;
 
     reg [63:0] tmp;
+
+    wire eq  = alu_a == alu_b;
+    wire lt  = $signed(alu_a) < $signed(alu_b);
+    wire ltu = alu_a < alu_b;
+
     always @(*)begin
         alu_result = 32'b0;
         tmp = 64'b0;
+        if(alu_op[5]==1'b1)begin
 
-        if(alu_op==alu_add || alu_op==alu_sub)alu_result = alu_a + alu_op[3]?-alu_b:alu_b;
-        if(alu_op[4:3] == 2'b00)begin
-            case(alu_op[2:0])
-                3'b001:alu_result = alu_a << alu_b[4:0];
-                3'b010:alu_result = $signed(alu_a) < $signed(alu_b)?32'b1:32'b0; 
-                3'b011:alu_result = alu_a < alu_b ? 32'b1:32'b0;
-                3'b100:alu_result = alu_a ^ alu_b;
-                3'b101:alu_result = alu_a >> alu_b[4:0];
-                3'b110:alu_result = alu_a | alu_b;
-                3'b111:alu_result = alu_a & alu_b;
-            endcase
-        end
-        if(alu_op==alu_sra) alu_result =  $signed(alu_a) >>> alu_b[4:0]; 
-        if(alu_op==alu_eq)  alu_result = alu_a == alu_b ? 32'b1:32'b0;
+            //beq  000 a=b
+            //bne  001 a!=b 
+            //bge  101 a>=b signed
+            //bgeu 111 a>=b unsigned
+            //blt  100 a<b  signed
+            //bltu 110 a<b  unsigned           
+            alu_result = (alu_op[0]^(alu_op[2]?(alu_op[1]?lt:ltu):eq))?32'b1:32'b0;
+
+        end else begin
+            if(alu_op[4] == 1'b0)begin
+                case(alu_op[2:0])
+                    3'b000:alu_result = alu_a + (alu_op[3]?-alu_b +1:alu_b); //add sub
+                    3'b001:alu_result = alu_a << alu_b[4:0]; //sll
+                    3'b010:alu_result = lt?32'b1:32'b0; 
+                    3'b011:alu_result = ltu ? 32'b1:32'b0;
+                    3'b100:alu_result = alu_a ^ alu_b;
+                    3'b101:alu_result = alu_op[3]?$signed(alu_a) >>> alu_b[4:0]:alu_a >> alu_b[4:0];
+                    3'b110:alu_result = alu_a | alu_b;
+                    3'b111:alu_result = alu_a & alu_b;
+                endcase
+            end
 
 
-        // 乘法器和除法器后续再弄成中断处理多周期除法器
-        //generate
+            // 乘法器和除法器后续再弄成中断处理多周期除法器
+            //generate
             //TC实现中为了节约几个乘法器和除法器
             //对输入先判断是否是负数
             //然后取绝对值(如果是负数,就取反,变成正数)
@@ -79,9 +91,8 @@ module alu #(
             end else begin
                 //留给中断处理
             end
-        //endgenerate
-
-
+            //endgenerate
+        end
     end
 endmodule
 

@@ -44,7 +44,7 @@ module instruction_decoder(
                 end
 
                 // I 型指令：JALR / LOAD / ALU Imm
-                5'b00000, 5'b00100,5'b11100,5'b00011: begin
+                5'b00000, 5'b00100,5'b11100,5'b00011,5'b11001: begin
                     rd_address           = instruction[11:7];
                     rs1_address  = instruction[19:15];
                     funct3       = instruction[14:12];
