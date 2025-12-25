@@ -113,3 +113,12 @@ ebreak
 </pre>
 
 </details>
+<details>
+
+<summary>地址分配</summary>
+
+0x8000_0000 - 0x800F_0000
+
+<pre>
+</details>
+
