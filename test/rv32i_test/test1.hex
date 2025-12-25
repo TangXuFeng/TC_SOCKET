@@ -66,3 +66,11 @@
 # add  x31, x0, x9
 0x00900fb3
 
+# I-type pc=0x00000044 rd=10 rs1=9 imm=1 (0x1) funct3=5 opcode=0x13
+# srli x10, x9, 1
+0x0014d513
+
+# R-type pc=0x00000048 rd=31 rs1=0 rs2=10 funct3=0 funct7=0x0 opcode=0x33
+# add  x31, x0, x10
+0x00a00fb3
+
