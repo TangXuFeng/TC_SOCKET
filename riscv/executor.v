@@ -59,7 +59,6 @@ module executor    (
             address = alu_result & ~ 32'b11;
             if(f3[0]==1'b0) tmp = read_data >> alu_result[1:0];
             if(f3[0]==1'b1) tmp = read_data >> alu_result[1];
-            tmp = read_data>>alu_result[1:0];
             if(f3[0]) rd_data = {{24{read_data[7]}}, tmp[7:0]}; // LB
             if(f3[1]) rd_data = {{16{read_data[15]}}, tmp[15:0]}; // LH
             if(f3[2]) rd_data = read_data; // LW
