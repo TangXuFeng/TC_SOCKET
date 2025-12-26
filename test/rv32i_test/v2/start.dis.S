@@ -8,7 +8,7 @@ Disassembly of section .text:
    0:	90000537          	lui	a0,0x90000
    4:	00050513          	mv	a0,a0
    8:	06800293          	li	t0,104
-   c:	00550023          	sb	t0,0(a0) # 90000000 <_GLOBAL_OFFSET_TABLE_+0x8ffffeac>
+   c:	00550023          	sb	t0,0(a0) # 90000000 <_GLOBAL_OFFSET_TABLE_+0x8ffffe28>
   10:	06500293          	li	t0,101
   14:	005500a3          	sb	t0,1(a0)
   18:	06c00293          	li	t0,108
@@ -33,86 +33,125 @@ Disassembly of section .text:
   64:	005505a3          	sb	t0,11(a0)
   68:	00000293          	li	t0,0
   6c:	00550623          	sb	t0,12(a0)
+  70:	90000537          	lui	a0,0x90000
+  74:	00050513          	mv	a0,a0
+  78:	900005b7          	lui	a1,0x90000
+  7c:	01458593          	addi	a1,a1,20 # 90000014 <_GLOBAL_OFFSET_TABLE_+0x8ffffe3c>
+  80:	00d00313          	li	t1,13
 
-00000070 <hang>:
-  70:	0000006f          	j	70 <hang>
+00000084 <byte_loop>:
+  84:	00054283          	lbu	t0,0(a0) # 90000000 <_GLOBAL_OFFSET_TABLE_+0x8ffffe28>
+  88:	00558023          	sb	t0,0(a1)
+  8c:	00150513          	addi	a0,a0,1
+  90:	00158593          	addi	a1,a1,1
+  94:	fff30313          	addi	t1,t1,-1
+  98:	fe0316e3          	bnez	t1,84 <byte_loop>
+  9c:	90000537          	lui	a0,0x90000
+  a0:	00050513          	mv	a0,a0
+  a4:	900005b7          	lui	a1,0x90000
+  a8:	02858593          	addi	a1,a1,40 # 90000028 <_GLOBAL_OFFSET_TABLE_+0x8ffffe50>
+  ac:	00c00313          	li	t1,12
+
+000000b0 <half_loop>:
+  b0:	00051283          	lh	t0,0(a0) # 90000000 <_GLOBAL_OFFSET_TABLE_+0x8ffffe28>
+  b4:	00559023          	sh	t0,0(a1)
+  b8:	00250513          	addi	a0,a0,2
+  bc:	00258593          	addi	a1,a1,2
+  c0:	ffe30313          	addi	t1,t1,-2
+  c4:	fe0316e3          	bnez	t1,b0 <half_loop>
+  c8:	90000537          	lui	a0,0x90000
+  cc:	00050513          	mv	a0,a0
+  d0:	900005b7          	lui	a1,0x90000
+  d4:	03c58593          	addi	a1,a1,60 # 9000003c <_GLOBAL_OFFSET_TABLE_+0x8ffffe64>
+  d8:	00c00313          	li	t1,12
+
+000000dc <word_loop>:
+  dc:	00052283          	lw	t0,0(a0) # 90000000 <_GLOBAL_OFFSET_TABLE_+0x8ffffe28>
+  e0:	0055a023          	sw	t0,0(a1)
+  e4:	00450513          	addi	a0,a0,4
+  e8:	00458593          	addi	a1,a1,4
+  ec:	ffc30313          	addi	t1,t1,-4
+  f0:	fe0316e3          	bnez	t1,dc <word_loop>
+
+000000f4 <done>:
+  f4:	0000006f          	j	f4 <done>
 
 Disassembly of section .interp:
 
-00000074 <.interp>:
-  74:	62696c2f          	.insn	4, 0x62696c2f
-  78:	2d646c2f          	.insn	4, 0x2d646c2f
-  7c:	696c                	.insn	2, 0x696c
-  7e:	756e                	.insn	2, 0x756e
-  80:	2d78                	.insn	2, 0x2d78
-  82:	6972                	.insn	2, 0x6972
-  84:	33766373          	.insn	4, 0x33766373
-  88:	2d32                	.insn	2, 0x2d32
-  8a:	6c69                	.insn	2, 0x6c69
-  8c:	3370                	.insn	2, 0x3370
-  8e:	2e32                	.insn	2, 0x2e32
-  90:	312e6f73          	.insn	4, 0x312e6f73
+000000f8 <.interp>:
+  f8:	62696c2f          	.insn	4, 0x62696c2f
+  fc:	2d646c2f          	.insn	4, 0x2d646c2f
+ 100:	696c                	.insn	2, 0x696c
+ 102:	756e                	.insn	2, 0x756e
+ 104:	2d78                	.insn	2, 0x2d78
+ 106:	6972                	.insn	2, 0x6972
+ 108:	33766373          	.insn	4, 0x33766373
+ 10c:	2d32                	.insn	2, 0x2d32
+ 10e:	6c69                	.insn	2, 0x6c69
+ 110:	3370                	.insn	2, 0x3370
+ 112:	2e32                	.insn	2, 0x2e32
+ 114:	312e6f73          	.insn	4, 0x312e6f73
 	...
 
 Disassembly of section .dynsym:
 
-00000098 <.dynsym>:
+0000011c <.dynsym>:
 	...
-  b4:	00010003          	lb	zero,0(sp)
+ 138:	00010003          	lb	zero,0(sp)
 
 Disassembly of section .dynstr:
 
-000000b8 <.dynstr>:
+0000013c <.dynstr>:
 	...
 
 Disassembly of section .gnu.hash:
 
-000000bc <.gnu.hash>:
-  bc:	0001                	.insn	2, 0x0001
-  be:	0000                	.insn	2, 0x0000
-  c0:	0001                	.insn	2, 0x0001
-  c2:	0000                	.insn	2, 0x0000
-  c4:	0001                	.insn	2, 0x0001
+00000140 <.gnu.hash>:
+ 140:	0001                	.insn	2, 0x0001
+ 142:	0000                	.insn	2, 0x0000
+ 144:	0001                	.insn	2, 0x0001
+ 146:	0000                	.insn	2, 0x0000
+ 148:	0001                	.insn	2, 0x0001
 	...
 
 Disassembly of section .dynamic:
 
-000000d4 <.dynamic>:
-  d4:	fef5                	.insn	2, 0xfef5
-  d6:	6fff 00bc 0000 0005 	.insn	22, 0x009800000006000000b800000005000000bc6fff
-  de:	0000 00b8 0000 0006 
-  e6:	0000 0098 0000 
-  ec:	000a                	.insn	2, 0x000a
-  ee:	0000                	.insn	2, 0x0000
-  f0:	0001                	.insn	2, 0x0001
-  f2:	0000                	.insn	2, 0x0000
-  f4:	0000000b          	.insn	4, 0x000b
-  f8:	0010                	.insn	2, 0x0010
-  fa:	0000                	.insn	2, 0x0000
-  fc:	0015                	.insn	2, 0x0015
-  fe:	0000                	.insn	2, 0x0000
- 100:	0000                	.insn	2, 0x0000
- 102:	0000                	.insn	2, 0x0000
- 104:	00000007          	.insn	4, 0x0007
- 108:	0000                	.insn	2, 0x0000
- 10a:	0000                	.insn	2, 0x0000
- 10c:	0008                	.insn	2, 0x0008
- 10e:	0000                	.insn	2, 0x0000
- 110:	0000                	.insn	2, 0x0000
- 112:	0000                	.insn	2, 0x0000
- 114:	0009                	.insn	2, 0x0009
- 116:	0000                	.insn	2, 0x0000
- 118:	000c                	.insn	2, 0x000c
- 11a:	0000                	.insn	2, 0x0000
- 11c:	6ffffffb          	.insn	4, 0x6ffffffb
- 120:	0000                	.insn	2, 0x0000
- 122:	0800                	.insn	2, 0x0800
+00000158 <.dynamic>:
+ 158:	fef5                	.insn	2, 0xfef5
+ 15a:	6fff 0140 0000 0005 	.insn	22, 0x011c000000060000013c00000005000001406fff
+ 162:	0000 013c 0000 0006 
+ 16a:	0000 011c 0000 
+ 170:	000a                	.insn	2, 0x000a
+ 172:	0000                	.insn	2, 0x0000
+ 174:	0001                	.insn	2, 0x0001
+ 176:	0000                	.insn	2, 0x0000
+ 178:	0000000b          	.insn	4, 0x000b
+ 17c:	0010                	.insn	2, 0x0010
+ 17e:	0000                	.insn	2, 0x0000
+ 180:	0015                	.insn	2, 0x0015
+ 182:	0000                	.insn	2, 0x0000
+ 184:	0000                	.insn	2, 0x0000
+ 186:	0000                	.insn	2, 0x0000
+ 188:	00000007          	.insn	4, 0x0007
+ 18c:	0000                	.insn	2, 0x0000
+ 18e:	0000                	.insn	2, 0x0000
+ 190:	0008                	.insn	2, 0x0008
+ 192:	0000                	.insn	2, 0x0000
+ 194:	0000                	.insn	2, 0x0000
+ 196:	0000                	.insn	2, 0x0000
+ 198:	0009                	.insn	2, 0x0009
+ 19a:	0000                	.insn	2, 0x0000
+ 19c:	000c                	.insn	2, 0x000c
+ 19e:	0000                	.insn	2, 0x0000
+ 1a0:	6ffffffb          	.insn	4, 0x6ffffffb
+ 1a4:	0000                	.insn	2, 0x0000
+ 1a6:	0800                	.insn	2, 0x0800
 	...
 
 Disassembly of section .got:
 
-00000154 <.got>:
- 154:	00d4                	.insn	2, 0x00d4
+000001d8 <.got>:
+ 1d8:	0158                	.insn	2, 0x0158
 	...
 
 Disassembly of section .riscv.attributes:
